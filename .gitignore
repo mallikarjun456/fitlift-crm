@@ -1,9 +1,18 @@
 # frontend
 frontend/node_modules
 frontend/build
+frontend/lead-crm/node_modules/
+frontend/lead-crm/.cache/
 
 # backend
 backend/target
+
+# cache packs
+*.pack
+*.old
+
+# build cache
+.cache/
 
 # env
 .env

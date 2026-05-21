@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLeads } from '../../context/LeadsContext';
 import { StatusBadge, LeadAvatar, ScoreRing, ScoreChip, IconButton } from '../ui';
 import { PIPELINE_STAGES, formatDate, cn } from '../../utils/helpers';
+import { getWhatsAppWelcomeLink } from '../../utils/whatsapp';
 
 const TABS = ['Overview'];
 
@@ -65,7 +66,6 @@ export default function LeadModal({ lead: initialLead, onClose }) {
                 >
                   {isEditing ? 'Cancel' : 'Edit'}
                 </button>
-                <ScoreRing score={lead.score} size={44} />
                 <IconButton onClick={onClose} title="Close">
                   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -75,7 +75,7 @@ export default function LeadModal({ lead: initialLead, onClose }) {
             </div>
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <StatusBadge status={lead.status} />
-              <ScoreChip score={lead.score} />
+              <ScoreRing score={lead.score} status={lead.status} />
               <span className="text-xs text-surface-400">{lead.source}</span>
             </div>
           </div>
@@ -171,10 +171,10 @@ export default function LeadModal({ lead: initialLead, onClose }) {
           )}
           {lead.phone && (
             <a
-              href={`https://wa.me/${lead.phone}`}
+              href={getWhatsAppWelcomeLink(lead)}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary text-sm py-3 sm:text-xs sm:py-2 justify-center min-h-[44px] sm:min-h-0"
+              className="btn-primary text-sm py-3 sm:text-xs sm:py-2 justify-center min-h-[44px] sm:min-h-0 bg-emerald-600 hover:bg-emerald-700 border-0"
             >
               <WhatsAppIcon />WhatsApp Lead
             </a>

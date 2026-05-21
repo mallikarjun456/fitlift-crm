@@ -149,7 +149,7 @@ function KanbanCard({ lead, stage, isDragging, onDragStart, onDragEnd, onClick }
             <p className="text-xs text-surface-400 truncate">{lead.fitnessGoal || lead.preferredPlan || '—'}</p>
           </div>
         </div>
-        <ScoreRing score={lead.score} size={36} />
+        <ScoreRing score={lead.score} status={lead.status} />
       </div>
 
       {/* Notes preview */}

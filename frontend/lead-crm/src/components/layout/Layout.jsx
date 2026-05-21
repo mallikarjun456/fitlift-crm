@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useLeads } from '../../context/LeadsContext';
-import { cn } from '../../utils/helpers';
+import { cn, getScoreLabel } from '../../utils/helpers';
+import { toast } from 'react-hot-toast';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', icon: GridIcon, exact: true },
@@ -14,6 +15,11 @@ export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [gymName, setGymName] = useState("GymSetu Elite Gym");
+  const [tempGymName, setTempGymName] = useState("GymSetu Elite Gym");
+  const [settingsToggles, setSettingsToggles] = useState({ email: true, whatsapp: true });
   const { stats, leads, search, setSearch } = useLeads();
   const location = useLocation();
 
@@ -28,6 +34,22 @@ export default function Layout({ children }) {
     window.addEventListener('click', h);
     return () => window.removeEventListener('click', h);
   }, [showProfile]);
+
+  const handleSaveSettings = (e) => {
+    e.preventDefault();
+    if (!tempGymName.trim()) {
+      toast.error("Gym Name cannot be empty!");
+      return;
+    }
+    setGymName(tempGymName.trim());
+    setShowSettings(false);
+    toast.success("Settings saved successfully!");
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    toast.success("Logged out successfully!");
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-50">
@@ -54,7 +76,7 @@ export default function Layout({ children }) {
           </div>
           {!collapsed && (
             <div>
-              <span className="text-sm font-bold text-surface-900">LeadAI</span>
+              <span className="text-sm font-bold text-surface-900">GymSetu</span>
               <span className="ml-1.5 text-[10px] font-semibold bg-brand-50 text-brand-600 px-1.5 py-0.5 rounded-md">CRM</span>
             </div>
           )}
@@ -78,20 +100,23 @@ export default function Layout({ children }) {
         </nav>
 
         {/* Stats summary (Desktop only or expanded mobile) */}
-        {(!collapsed || mobileMenuOpen) && stats && (
+        {(!collapsed || mobileMenuOpen) && leads && (
           <div className="p-3 border-t border-surface-100">
             <div className="rounded-xl bg-surface-50 p-3 space-y-2">
               <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Quick Stats</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: 'Total', value: stats.totalLeads, color: 'text-brand-600' },
-                  { label: 'Won', value: stats.wonLeads, color: 'text-success-500' },
-                  { label: 'Qualified', value: stats.qualifiedLeads, color: 'text-warning-500' },
-                  { label: 'Avg Score', value: stats.avgScore, color: 'text-surface-700' },
+                  { label: 'Total Leads', value: leads.length, color: 'text-brand-600' },
+                  { 
+                    label: 'Active Leads', 
+                    value: leads.filter(l => ['NEW', 'CONTACTED', 'FOLLOW_UP'].includes(l.status) || (l.score || 0) >= 80).length, 
+                    color: 'text-rose-500' 
+                  },
+                  { label: 'Joined', value: leads.filter(l => l.status === 'JOINED').length, color: 'text-success-500' },
                 ].map(({ label, value, color }) => (
                   <div key={label}>
                     <p className="text-xs text-surface-400">{label}</p>
-                    <p className={cn('text-sm font-bold', color)}>{value ?? '—'}</p>
+                    <p className={cn('text-sm font-bold', color)}>{value ?? 0}</p>
                   </div>
                 ))}
               </div>
@@ -112,9 +137,9 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-surface-200 flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+        <header className="h-16 bg-white border-b border-surface-200 flex items-center justify-between px-4 sm:px-6 flex-shrink-0 z-30">
           <div className="flex items-center gap-3">
             {/* Mobile Hamburger */}
             <button 
@@ -128,7 +153,7 @@ export default function Layout({ children }) {
             
             <div className="hidden sm:block">
               <h1 className="text-sm font-semibold text-surface-900">
-                {NAV_ITEMS.find(n => n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path))?.label || 'LeadAI'}
+                {NAV_ITEMS.find(n => n.exact ? location.pathname === n.path : location.pathname.startsWith(n.path))?.label || 'GymSetu'}
               </h1>
               <p className="text-[10px] text-surface-400 font-medium">{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
             </div>
@@ -139,10 +164,10 @@ export default function Layout({ children }) {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search…"
-                className="w-24 xs:w-32 sm:w-48 pl-8 pr-8 py-1.5 text-xs sm:text-sm bg-surface-100 border-0 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-all"
+                placeholder="Search leads..."
+                className="input-field py-1.5 pl-8 pr-8 text-xs bg-surface-50 border-surface-100 focus:bg-white w-36 sm:w-48 lg:w-56 focus:w-44 sm:focus:w-60 transition-all rounded-xl"
               />
-              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               {search && (
@@ -168,12 +193,18 @@ export default function Layout({ children }) {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-surface-100 py-2 z-50 animate-fade-in origin-top-right">
                   <div className="px-4 py-2 border-b border-surface-50 mb-1">
                     <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Gym Profile</p>
-                    <p className="text-sm font-bold text-surface-900 mt-0.5">FitLift Elite Gym</p>
+                    <p className="text-sm font-bold text-surface-900 mt-0.5">{gymName}</p>
                   </div>
-                  <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-600 hover:bg-surface-50 hover:text-brand-600 transition-colors">
+                  <button 
+                    onClick={() => { setTempGymName(gymName); setShowSettings(true); setShowProfile(false); }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-600 hover:bg-surface-50 hover:text-brand-600 transition-colors"
+                  >
                     <span>⚙️</span> Settings
                   </button>
-                  <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-danger-500 hover:bg-danger-50 transition-colors">
+                  <button 
+                    onClick={() => { setShowLogoutConfirm(true); setShowProfile(false); }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-danger-500 hover:bg-danger-50 transition-colors"
+                  >
                     <span>🚪</span> Logout
                   </button>
                 </div>
@@ -189,6 +220,113 @@ export default function Layout({ children }) {
           </div>
         </main>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-surface-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-surface-100 animate-scale-up">
+            <div className="flex items-center justify-between pb-4 border-b border-surface-100 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚙️</span>
+                <h3 className="text-lg font-bold text-surface-900">GymSetu Settings</h3>
+              </div>
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="text-surface-400 hover:text-surface-600 p-1.5 hover:bg-surface-50 rounded-xl transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              <div>
+                <label className="label mb-2 block">Gym Name</label>
+                <input 
+                  type="text" 
+                  value={tempGymName} 
+                  onChange={(e) => setTempGymName(e.target.value)} 
+                  className="input-field"
+                  placeholder="Enter Gym Name..."
+                  required
+                />
+              </div>
+
+              <div className="space-y-4">
+                <label className="label block border-b border-surface-50 pb-1.5">Notification Preferences</label>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-surface-800">Email Alerts</span>
+                    <span className="text-xs text-surface-400">Receive daily summary reports</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={settingsToggles.email} 
+                    onChange={(e) => setSettingsToggles({ ...settingsToggles, email: e.target.checked })} 
+                    className="w-5 h-5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-surface-800">WhatsApp Prefills</span>
+                    <span className="text-xs text-surface-400">Enable wa.me dynamic redirects</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={settingsToggles.whatsapp} 
+                    onChange={(e) => setSettingsToggles({ ...settingsToggles, whatsapp: e.target.checked })} 
+                    className="w-5 h-5 rounded border-surface-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t border-surface-50">
+                <button 
+                  type="button" 
+                  onClick={() => setShowSettings(false)} 
+                  className="btn-secondary py-2.5 px-5 text-sm font-semibold"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-primary py-2.5 px-6 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl"
+                >
+                  Save Settings
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-surface-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-surface-100 text-center animate-scale-up">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-100">
+              🚪
+            </div>
+            <h3 className="text-lg font-bold text-surface-900 mb-2">Confirm Logout</h3>
+            <p className="text-sm text-surface-500 mb-6 leading-relaxed">
+              Are you sure you want to log out of <strong>GymSetu CRM</strong>? You can log back in at any time.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowLogoutConfirm(false)} 
+                className="btn-secondary flex-1 py-2.5 text-sm font-semibold"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="btn-primary flex-1 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl border-0"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useLeads } from '../context/LeadsContext';
 import { StatusBadge, LeadAvatar, ScoreRing, ScoreChip, EmptyState, Skeleton, IconButton } from '../components/ui';
 import LeadModal from '../components/leads/LeadModal';
 import { PIPELINE_STAGES, timeAgo, cn, truncate } from '../utils/helpers';
+import { getWhatsAppWelcomeLink } from '../utils/whatsapp';
 
 const SORT_OPTIONS = [
   { value: 'score_desc', label: 'Score: High → Low' },
@@ -179,10 +180,21 @@ function LeadRow({ lead, onOpen, onDelete, onStatusChange }) {
           <p className="text-xs text-surface-400 truncate">{lead.email}</p>
           <div className="flex items-center gap-2 mt-1">
             <StatusBadge status={lead.status} />
-            <ScoreChip score={lead.score} />
+            <ScoreRing score={lead.score} status={lead.status} />
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          {lead.status === 'NEW' && (
+            <button
+              onClick={() => onStatusChange(lead.id, 'CONTACTED')}
+              title="Mark as Contacted"
+              className="p-2 rounded-lg text-brand-600 active:bg-brand-50 hover:bg-brand-50 hover:text-brand-750 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+            >
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          )}
           {lead.phone && (
             <a
               href={`tel:${lead.phone}`}
@@ -194,7 +206,7 @@ function LeadRow({ lead, onOpen, onDelete, onStatusChange }) {
           )}
           {lead.phone && (
             <a
-              href={`https://wa.me/${lead.phone}`}
+              href={getWhatsAppWelcomeLink(lead)}
               target="_blank"
               rel="noopener noreferrer"
               title="WhatsApp"
@@ -246,12 +258,22 @@ function LeadRow({ lead, onOpen, onDelete, onStatusChange }) {
 
         {/* Score */}
         <div className="flex items-center gap-2">
-          <ScoreRing score={lead.score} size={40} />
-          <ScoreChip score={lead.score} />
+          <ScoreRing score={lead.score} status={lead.status} />
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          {lead.status === 'NEW' && (
+            <button
+              onClick={() => onStatusChange(lead.id, 'CONTACTED')}
+              title="Mark as Contacted"
+              className="p-1.5 rounded-lg text-brand-600 hover:text-brand-700 hover:bg-brand-50 transition-colors"
+            >
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          )}
           {lead.phone && (
             <a
               href={`tel:${lead.phone}`}
@@ -263,7 +285,7 @@ function LeadRow({ lead, onOpen, onDelete, onStatusChange }) {
           )}
           {lead.phone && (
             <a
-              href={`https://wa.me/${lead.phone}`}
+              href={getWhatsAppWelcomeLink(lead)}
               target="_blank"
               rel="noopener noreferrer"
               title="WhatsApp"

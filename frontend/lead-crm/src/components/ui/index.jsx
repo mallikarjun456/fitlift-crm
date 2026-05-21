@@ -31,41 +31,37 @@ export function LeadAvatar({ name, size = 'md' }) {
   );
 }
 
-// ── Score Ring ────────────────────────────────────────────────────────────────
-export function ScoreRing({ score, size = 48 }) {
-  const r = (size - 8) / 2;
-  const circ = 2 * Math.PI * r;
-  const filled = score != null ? (score / 100) * circ : 0;
-  const dash = circ - filled;
-  const color = getScoreRingColor(score);
-  const { label } = getScoreLabel(score);
+// ── Score Ring (now replaced with clean temperature/status badge) ──────────────
+export function ScoreRing({ score, status }) {
+  if (status === 'JOINED') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-xl text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100 whitespace-nowrap uppercase tracking-wider">
+        JOINED ✅
+      </span>
+    );
+  }
+
+  let bgClass = "bg-blue-50 text-blue-700 border-blue-100";
+  let text = "COLD ❄️";
+
+  if (score >= 80) {
+    bgClass = "bg-rose-50 text-rose-700 border-rose-100";
+    text = "HOT 🔥";
+  } else if (score >= 50) {
+    bgClass = "bg-amber-50 text-amber-700 border-amber-100";
+    text = "WARM ☀️";
+  }
 
   return (
-    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute inset-0">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e4e8f5" strokeWidth={4} />
-        <circle
-          cx={size / 2} cy={size / 2} r={r} fill="none"
-          stroke={color} strokeWidth={4} strokeLinecap="round"
-          strokeDasharray={`${filled} ${dash}`}
-          className="score-ring transition-all duration-700"
-        />
-      </svg>
-      <span className="text-xs font-bold" style={{ color }}>
-        {score != null ? score : '—'}
-      </span>
-    </div>
+    <span className={cn("inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-xl text-[10px] font-extrabold border whitespace-nowrap uppercase tracking-wider", bgClass)}>
+      {text}
+    </span>
   );
 }
 
-// ── Score Chip ────────────────────────────────────────────────────────────────
-export function ScoreChip({ score }) {
-  const { label, color, bg } = getScoreLabel(score);
-  return (
-    <span className={cn('badge font-semibold tracking-wide', color, bg)}>
-      {score != null ? `${score} · ` : ''}{label}
-    </span>
-  );
+// ── Score Chip (wrapper for consistency) ──────────────────────────────────────
+export function ScoreChip({ score, status }) {
+  return <ScoreRing score={score} status={status} />;
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
