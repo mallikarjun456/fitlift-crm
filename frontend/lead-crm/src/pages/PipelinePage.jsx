@@ -31,12 +31,12 @@ export default function PipelinePage() {
     setDragOver(null);
   };
 
-  const wonCount = grouped['WON']?.length || 0;
+  const wonCount = grouped['JOINED']?.length || 0;
   const totalCount = leads.length;
   const winRate = totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 0;
 
   return (
-    <div className="h-full flex flex-col animate-fade-in">
+    <div className="h-full flex flex-col animate-fade-in overflow-hidden min-w-0">
       {/* Header */}
       <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-surface-100 bg-white flex-shrink-0">
         <div>
@@ -54,7 +54,10 @@ export default function PipelinePage() {
       </div>
 
       {/* Kanban board */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth">
+      <div
+        className="flex-1 min-w-0 min-h-0 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth overscroll-x-contain"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         <div className="flex gap-4 p-4 h-full" style={{ minWidth: 'max-content' }}>
           {PIPELINE_STAGES.map((stage) => {
             const stageLeads = grouped[stage.id] || [];
