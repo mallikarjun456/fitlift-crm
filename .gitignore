@@ -7,6 +7,10 @@ frontend/lead-crm/.cache/
 # backend
 backend/target
 
+backend/backend/target/
+*.jar
+*.class
+
 # cache packs
 *.pack
 *.old
