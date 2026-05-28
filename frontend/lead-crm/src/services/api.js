@@ -5,8 +5,30 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://fitlift-crm.onre
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 30000,
+  timeout: 90000,
 });
+
+const RETRY_DELAY_MS = 5000;
+const MAX_GET_RETRIES = 2;
+const COLD_START_MESSAGE = 'Server is waking up... please wait a few seconds.';
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isRetryableGetError = (error) => {
+  const method = error.config?.method?.toLowerCase();
+  const status = error.response?.status;
+  return method === 'get' && (!status || status >= 500 || status === 429);
+};
+
+const isConnectionIssue = (error) => {
+  const message = error.message || '';
+  return (
+    error.code === 'ECONNABORTED' ||
+    message.includes('timeout') ||
+    message.includes('Network Error') ||
+    !error.response
+  );
+};
 
 // Request interceptor
 api.interceptors.request.use(
@@ -22,9 +44,21 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config || {};
+
+    if (isRetryableGetError(error) && (config.__retryCount || 0) < MAX_GET_RETRIES) {
+      config.__retryCount = (config.__retryCount || 0) + 1;
+      await wait(RETRY_DELAY_MS);
+      return api(config);
+    }
+
     const msg = error.response?.data?.error || error.response?.data?.message || error.message;
-    return Promise.reject(new Error(msg || 'An error occurred'));
+    const friendlyError = new Error(
+      isConnectionIssue(error) ? COLD_START_MESSAGE : (msg || 'Something went wrong. Please try again.')
+    );
+    friendlyError.isConnectionIssue = isConnectionIssue(error);
+    return Promise.reject(friendlyError);
   }
 );
 

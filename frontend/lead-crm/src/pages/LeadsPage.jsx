@@ -15,7 +15,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function LeadsPage() {
-  const { leads, filteredLeads, search, setSearch, loading, deleteLead, updateLeadStatus } = useLeads();
+  const { leads, filteredLeads, search, setSearch, loading, error, deleteLead, updateLeadStatus } = useLeads();
   const location = useLocation();
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [sortBy, setSortBy] = useState('score_desc');
@@ -107,6 +107,11 @@ export default function LeadsPage() {
       {/* Table */}
       {loading ? (
         <div className="card overflow-hidden">
+          {error && (
+            <div className="border-b border-brand-100 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700">
+              {error}
+            </div>
+          )}
           <div className="divide-y divide-surface-100">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="flex items-center gap-4 p-4">
@@ -118,6 +123,12 @@ export default function LeadsPage() {
             ))}
           </div>
         </div>
+      ) : error && leads.length === 0 ? (
+        <EmptyState
+          icon="..."
+          title={error}
+          description="Your leads will appear here once the server is ready."
+        />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon="🔍"

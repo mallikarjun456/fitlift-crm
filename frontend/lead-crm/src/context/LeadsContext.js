@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { leadsApi } from '../services/api';
 
 const LeadsContext = createContext(null);
+const COLD_START_MESSAGE = 'Server is waking up... please wait a few seconds.';
 
 export function LeadsProvider({ children }) {
   const [leads, setLeads] = useState([]);
@@ -12,8 +13,15 @@ export function LeadsProvider({ children }) {
   const [search, setSearch] = useState('');
 
   const fetchLeads = useCallback(async () => {
+    let wakeTimer;
+
     try {
       setLoading(true);
+      setError(null);
+
+      wakeTimer = setTimeout(() => {
+        setError(COLD_START_MESSAGE);
+      }, 3000);
 
       const [leadsData, statsData] = await Promise.all([
         leadsApi.getAll(),
@@ -22,10 +30,12 @@ export function LeadsProvider({ children }) {
 
       setLeads(leadsData || []);
       setStats(statsData || {});
+      setError(null);
     } catch (err) {
       console.error('Failed to fetch leads:', err);
-      toast.error('Backend connection failed');
+      setError(err.isConnectionIssue ? COLD_START_MESSAGE : 'Unable to load leads right now. Please try again.');
     } finally {
+      if (wakeTimer) clearTimeout(wakeTimer);
       setLoading(false);
     }
   }, []);

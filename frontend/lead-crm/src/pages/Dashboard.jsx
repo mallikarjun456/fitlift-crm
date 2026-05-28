@@ -35,7 +35,7 @@ const STAT_CARDS = [
 const PIE_COLORS = PIPELINE_STAGES.map((s) => s.dot);
 
 export default function Dashboard() {
-  const { leads, stats, loading } = useLeads();
+  const { leads, stats, loading, error } = useLeads();
   const navigate = useNavigate();
 
   // Calculate reminder counts
@@ -115,7 +115,11 @@ export default function Dashboard() {
     [leads]
   );
 
-  if (loading) return <DashboardSkeleton />;
+  if (loading) return <DashboardSkeleton message={error} />;
+
+  if (error && leads.length === 0) {
+    return <DashboardWakeState message={error} />;
+  }
 
   return (
     <div className="p-4 sm:p-6 space-y-6 animate-fade-in">
@@ -307,15 +311,34 @@ export default function Dashboard() {
   );
 }
 
-function DashboardSkeleton() {
+function DashboardSkeleton({ message }) {
   return (
     <div className="p-6 space-y-6">
+      {message && (
+        <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-700 shadow-sm">
+          {message}
+        </div>
+      )}
       <div className="grid grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
       </div>
       <div className="grid grid-cols-3 gap-4">
         <Skeleton className="h-56 rounded-2xl col-span-2" />
         <Skeleton className="h-56 rounded-2xl" />
+      </div>
+    </div>
+  );
+}
+
+function DashboardWakeState({ message }) {
+  return (
+    <div className="p-6 animate-fade-in">
+      <div className="rounded-2xl border border-brand-100 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600">
+          <span className="h-3 w-3 rounded-full bg-brand-500 animate-pulse" />
+        </div>
+        <h2 className="text-base font-semibold text-surface-900">{message}</h2>
+        <p className="mt-1 text-sm text-surface-400">Your dashboard will load automatically once the server is ready.</p>
       </div>
     </div>
   );
