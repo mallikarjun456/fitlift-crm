@@ -164,8 +164,18 @@ public class LeadService {
         if (source == null || source.isBlank()) {
             return Lead.LeadSource.INSTAGRAM;
         }
+        String normalized = source.trim().toUpperCase()
+            .replace("&", "AND")
+            .replace("-", "_")
+            .replace(" ", "_");
+
+        if ("INSTAGRAM_ADS".equals(normalized)) return Lead.LeadSource.INSTAGRAM;
+        if ("FACEBOOK_ADS".equals(normalized)) return Lead.LeadSource.FACEBOOK;
+        if ("GOOGLE_ADS".equals(normalized)) return Lead.LeadSource.GOOGLE;
+        if ("WALK_IN".equals(normalized) || "WALKIN".equals(normalized)) return Lead.LeadSource.WALK_IN;
+
         try {
-            return Lead.LeadSource.valueOf(source.trim().toUpperCase().replace(" ", "_"));
+            return Lead.LeadSource.valueOf(normalized);
         } catch (IllegalArgumentException ex) {
             return Lead.LeadSource.OTHER;
         }
@@ -192,9 +202,9 @@ public class LeadService {
 
     private boolean matchesScoreLabel(int score, String scoreLabel) {
         return switch (scoreLabel) {
-            case "HOT" -> score >= 75;
-            case "WARM" -> score >= 45 && score < 75;
-            case "COLD" -> score < 45;
+            case "HOT" -> score >= 80;
+            case "WARM" -> score >= 50 && score < 80;
+            case "COLD" -> score < 50;
             default -> false;
         };
     }
