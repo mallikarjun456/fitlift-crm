@@ -18,6 +18,32 @@ export const LEAD_SOURCES = [
   'WhatsApp', 'Website', 'Google Ads', 'Other',
 ];
 
+export const LEAD_SOURCE_OPTIONS = [
+  { value: 'INSTAGRAM', label: 'Instagram Ads' },
+  { value: 'FACEBOOK', label: 'Facebook Ads' },
+  { value: 'WALK_IN', label: 'Walk-in' },
+  { value: 'REFERRAL', label: 'Referral' },
+  { value: 'WHATSAPP', label: 'WhatsApp' },
+  { value: 'WEBSITE', label: 'Website' },
+  { value: 'GOOGLE', label: 'Google Ads' },
+  { value: 'OTHER', label: 'Other' },
+];
+
+const SOURCE_LABEL_BY_VALUE = Object.fromEntries(LEAD_SOURCE_OPTIONS.map((s) => [s.value, s.label]));
+const SOURCE_VALUE_BY_LABEL = Object.fromEntries(LEAD_SOURCE_OPTIONS.map((s) => [s.label.toLowerCase(), s.value]));
+
+export function normalizeLeadSourceForApi(source) {
+  if (!source) return '';
+  const cleaned = source.trim();
+  return SOURCE_VALUE_BY_LABEL[cleaned.toLowerCase()] || cleaned.toUpperCase().replace(/[\s-]+/g, '_');
+}
+
+export function formatLeadSource(source) {
+  if (!source) return '—';
+  const value = normalizeLeadSourceForApi(source);
+  return SOURCE_LABEL_BY_VALUE[value] || source;
+}
+
 // ── Score helpers ────────────────────────────────────────────────────────────
 
 export function getScoreLabel(score) {
@@ -45,7 +71,7 @@ export function getLeadTemperature(score) {
 export function timeAgo(dateStr) {
   if (!dateStr) return '—';
   try {
-    return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    return formatDistanceToNow(parseLeadDate(dateStr), { addSuffix: true });
   } catch {
     return '—';
   }
@@ -54,7 +80,7 @@ export function timeAgo(dateStr) {
 export function formatDate(dateStr) {
   if (!dateStr) return '—';
   try {
-    return format(new Date(dateStr), 'MMM d, yyyy');
+    return format(parseLeadDate(dateStr), 'MMM d, yyyy, h:mm a');
   } catch {
     return '—';
   }
@@ -85,6 +111,12 @@ export function getInitials(name = '') {
 
 export function cn(...classes) {
   return classes.filter(Boolean).join(' ');
+}
+
+export function parseLeadDate(dateStr) {
+  if (!dateStr) return null;
+  const hasTimezone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(dateStr);
+  return new Date(hasTimezone ? dateStr : `${dateStr}Z`);
 }
 
 export function truncate(str, len = 60) {

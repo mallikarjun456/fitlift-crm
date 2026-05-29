@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeads } from '../context/LeadsContext';
 import { StatusBadge, LeadAvatar, ScoreRing, Skeleton } from '../components/ui';
-import { PIPELINE_STAGES, timeAgo, cn } from '../utils/helpers';
+import { PIPELINE_STAGES, timeAgo, cn, formatLeadSource, parseLeadDate } from '../utils/helpers';
 import { checkReminder, getReminderLeads, getWhatsAppWelcomeLink } from '../utils/whatsapp';
 
 const STAT_CARDS = [
@@ -63,7 +63,7 @@ export default function Dashboard() {
   // Calculate mini stats
   const leadsThisWeek = useMemo(() => {
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return leads.filter((l) => l.createdAt && new Date(l.createdAt).getTime() > sevenDaysAgo).length;
+    return leads.filter((l) => l.createdAt && parseLeadDate(l.createdAt).getTime() > sevenDaysAgo).length;
   }, [leads]);
 
   const contactedCount = useMemo(() => {
@@ -83,7 +83,7 @@ export default function Dashboard() {
       if (aReminder && !bReminder) return -1;
       if (!aReminder && bReminder) return 1;
       
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      return parseLeadDate(b.createdAt) - parseLeadDate(a.createdAt);
     }).slice(0, 6);
   }, [leads]);
 
@@ -295,7 +295,7 @@ export default function Dashboard() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-surface-400 truncate">{lead.fitnessGoal} · {lead.source}</p>
+                    <p className="text-xs text-surface-400 truncate">{lead.fitnessGoal} · {formatLeadSource(lead.source)}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <ScoreRing score={lead.score} status={lead.status} />

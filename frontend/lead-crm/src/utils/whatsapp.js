@@ -1,6 +1,7 @@
 /**
  * Reusable WhatsApp & Reminder Utility for GymSetu CRM
  */
+import { parseLeadDate } from './helpers';
 
 /**
  * Generates a wa.me URL with a prefilled welcome message.
@@ -36,7 +37,7 @@ export function getWhatsAppWelcomeLink(lead) {
 export function checkReminder(lead) {
   if (!lead || !lead.status || !lead.createdAt) return false;
 
-  const elapsedMs = Date.now() - new Date(lead.createdAt).getTime();
+  const elapsedMs = Date.now() - parseLeadDate(lead.createdAt).getTime();
   const elapsedHours = elapsedMs / (1000 * 60 * 60);
 
   switch (lead.status) {

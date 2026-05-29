@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeads } from '../context/LeadsContext';
-import { LEAD_SOURCES, cn } from '../utils/helpers';
+import { LEAD_SOURCE_OPTIONS, cn, normalizeLeadSourceForApi } from '../utils/helpers';
 import { Spinner } from '../components/ui';
 import { getWhatsAppWelcomeLink } from '../utils/whatsapp';
 
 const INITIAL = {
   name: '', email: '', phone: '', fitnessGoal: '', preferredPlan: '',
-  notes: '', source: LEAD_SOURCES[0], status: 'NEW', trialInterested: false,
+  notes: '', source: '', status: 'NEW', trialInterested: false,
 };
 
 const GOALS = [
@@ -46,6 +46,7 @@ export default function CapturePage() {
     if (!form.name.trim()) errs.name = 'Name is required';
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email format';
     if (!form.phone.trim()) errs.phone = 'Phone is required';
+    if (!form.source) errs.source = 'Lead source is required';
     return errs;
   };
 
@@ -63,7 +64,7 @@ export default function CapturePage() {
         phone: form.phone.trim().replace(/\s+/g, ''), // Sanitise for backend regex
         fitnessGoal: form.fitnessGoal || GOALS[2], // Default to General Fitness if empty
         preferredPlan: form.preferredPlan || PLANS[0], // Default to Standard if empty
-        source: form.source,
+        source: normalizeLeadSourceForApi(form.source),
         status: form.status,
         notes: form.notes.trim(),
         trialInterested: form.trialInterested,
@@ -173,9 +174,15 @@ export default function CapturePage() {
               {/* Source dropdown */}
               <div>
                 <label className="label">Lead Source</label>
-                <select value={form.source} onChange={set('source')} className="input-field">
-                  {LEAD_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+                <select
+                  value={form.source}
+                  onChange={set('source')}
+                  className={cn('input-field', errors.source && 'border-danger-300 focus:ring-danger-200 focus:border-danger-400')}
+                >
+                  <option value="">Select Lead Source</option>
+                  {LEAD_SOURCE_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
+                {errors.source && <p className="text-xs text-danger-500 mt-1">{errors.source}</p>}
               </div>
             </div>
           </div>

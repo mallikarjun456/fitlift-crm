@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useLeads } from '../context/LeadsContext';
 import { StatusBadge, LeadAvatar, ScoreRing, EmptyState } from '../components/ui';
 import LeadModal from '../components/leads/LeadModal';
-import { PIPELINE_STAGES, timeAgo, cn } from '../utils/helpers';
+import { PIPELINE_STAGES, timeAgo, cn, formatLeadSource } from '../utils/helpers';
 
 export default function PipelinePage() {
   const { leads, filteredLeads, updateLeadStatus, loading } = useLeads();
@@ -164,7 +164,7 @@ function KanbanCard({ lead, stage, isDragging, onDragStart, onDragEnd, onClick }
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <span className="text-xs bg-surface-100 text-surface-500 px-2 py-0.5 rounded-md font-medium">{lead.source}</span>
+        <span className="text-xs bg-surface-100 text-surface-500 px-2 py-0.5 rounded-md font-medium">{formatLeadSource(lead.source)}</span>
         <span className="text-xs text-surface-300">{timeAgo(lead.createdAt)}</span>
       </div>
 

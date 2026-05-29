@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLeads } from '../../context/LeadsContext';
 import { StatusBadge, LeadAvatar, ScoreRing, ScoreChip, IconButton } from '../ui';
-import { PIPELINE_STAGES, formatDate, cn } from '../../utils/helpers';
+import { PIPELINE_STAGES, formatDate, cn, formatLeadSource } from '../../utils/helpers';
 import { getWhatsAppWelcomeLink } from '../../utils/whatsapp';
 
 const TABS = ['Overview'];
@@ -76,7 +76,7 @@ export default function LeadModal({ lead: initialLead, onClose }) {
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <StatusBadge status={lead.status} />
               <ScoreRing score={lead.score} status={lead.status} />
-              <span className="text-xs text-surface-400">{lead.source}</span>
+              <span className="text-xs text-surface-400">{formatLeadSource(lead.source)}</span>
             </div>
           </div>
         </div>
@@ -198,7 +198,7 @@ function OverviewTab({ lead, onStatusChange }) {
             { label: 'Phone', value: lead.phone || '—' },
             { label: 'Fitness Goal', value: lead.fitnessGoal || '—' },
             { label: 'Preferred Plan', value: lead.preferredPlan || '—' },
-            { label: 'Source', value: lead.source },
+            { label: 'Source', value: formatLeadSource(lead.source) },
             { label: 'Created', value: formatDate(lead.createdAt) },
           ].map(({ label, value, href }) => (
             <div key={label}>

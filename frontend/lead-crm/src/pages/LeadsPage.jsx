@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useLeads } from '../context/LeadsContext';
 import { StatusBadge, LeadAvatar, ScoreRing, ScoreChip, EmptyState, Skeleton, IconButton } from '../components/ui';
 import LeadModal from '../components/leads/LeadModal';
-import { PIPELINE_STAGES, timeAgo, cn, truncate } from '../utils/helpers';
+import { PIPELINE_STAGES, timeAgo, cn, truncate, formatLeadSource, parseLeadDate } from '../utils/helpers';
 import { getWhatsAppWelcomeLink } from '../utils/whatsapp';
 
 const SORT_OPTIONS = [
@@ -40,8 +40,8 @@ export default function LeadsPage() {
       switch (sortBy) {
         case 'score_desc': return (b.score || 0) - (a.score || 0);
         case 'score_asc': return (a.score || 0) - (b.score || 0);
-        case 'date_desc': return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'date_asc': return new Date(a.createdAt) - new Date(b.createdAt);
+        case 'date_desc': return parseLeadDate(b.createdAt) - parseLeadDate(a.createdAt);
+        case 'date_asc': return parseLeadDate(a.createdAt) - parseLeadDate(b.createdAt);
         case 'name_asc': return a.name.localeCompare(b.name);
         default: return 0;
       }
@@ -251,7 +251,7 @@ function LeadRow({ lead, onOpen, onDelete, onStatusChange }) {
 
         {/* Source */}
         <div>
-          <span className="text-xs font-medium text-surface-500 bg-surface-100 px-2 py-1 rounded-lg">{lead.source}</span>
+          <span className="text-xs font-medium text-surface-500 bg-surface-100 px-2 py-1 rounded-lg">{formatLeadSource(lead.source)}</span>
         </div>
 
         {/* Status */}
